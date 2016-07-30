@@ -1,0 +1,25 @@
+library(igraph)
+##this function calculates the nodes selection without seed
+##last modified: 28-05-2015
+##connectivity: lambda; interconnectivity: gamma; sparsity: eta
+multi_task_net <- function(net1, net2, mu=.7) ##same net, but with two weights
+{
+	if(!all(V(net1)$name == V(net2)$name)) {cat('two nets not identical in structure\n'); return('ERRROR')}
+	
+	v_count = vcount(net1)
+	V(net1)$oriname = V(net1)$name
+	V(net2)$oriname = V(net2)$name
+	
+	V(net1)$name = as.character( 1:v_count )
+	V(net2)$name = as.character( v_count + (1:v_count) )
+	multi_net = net1 + net2
+	V(multi_net)$weight = apply(cbind( V(multi_net)$weight_1, V(multi_net)$weight_2), 1, function(v) v[!is.na(v)]) ##assign feature weight
+	V(multi_net)$oriname = apply(cbind( V(multi_net)$oriname_1, V(multi_net)$oriname_2), 1, function(v) v[!is.na(v)]) ##assign feature weight
+	
+	E(multi_net)$weight = 1
+	multi_net[from=V(net1)$name, to=V(net2)$name] = 1
+	multi_net[from=V(net1)$name, to=V(net2)$name, attr='weight'] = mu
+	return( multi_net )
+} 
+
+
